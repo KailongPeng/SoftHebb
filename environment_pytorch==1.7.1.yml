@@ -304,4 +304,4 @@ dependencies:
     - efficientnet-pytorch==0.7.1
     - kmeans-pytorch==0.3
     - torchsummary==1.5.1
-prefix: /home/username/anaconda3/envs/softhebb # if this path cannot be found, it will be installed under anaconda dir
+prefix: /home/kp578/anaconda3/envs/softhebb # if this path cannot be found, it will be installed under anaconda dir
