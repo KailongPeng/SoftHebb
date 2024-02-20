@@ -5,13 +5,14 @@ Demo single-file script to train a ConvNet on CIFAR10 using SoftHebb, an unsuper
 import math
 import warnings
 
+import numpy as np
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
 from torch.optim.lr_scheduler import StepLR
 import torchvision
-
+from tqdm import tqdm
 import os
 os.chdir('/gpfs/milgram/project/turk-browne/projects/SoftHebb')
 
@@ -145,7 +146,7 @@ class DeepSoftHebb(nn.Module):
         out = self.pool2(self.activ2(self.conv2(self.bn2(out))))  # out -> bn2 -> conv2 -> activ2 -> pool2
         # block 3
         out = self.pool3(self.activ3(self.conv3(self.bn3(out))))  # out -> bn3 -> conv3 -> activ3 -> pool3
-        self.representation = self.flatten(out)
+        self.representation = self.flatten(out)  # shape: [16, 24576]
         # block 4
         return self.classifier(self.dropout(self.flatten(out)))  # out -> flatten -> classifier
 
@@ -312,9 +313,13 @@ if __name__ == "__main__":
     testset = FastCIFAR10('./data', train=False)  # Dataset FastCIFAR10 Number of datapoints: 10000 Root location: ./data Split: Test
     # Use a fixed seed for the random number generator
     torch.manual_seed(42)
+
+    np.random.seed(42)
+    # Randomly select 1000 indices from the total of 24576 units
+    selected_indices = np.random.choice(24576, size=1000, replace=False)
+
     # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
-    import pdb; pdb.set_trace()
     # Unsupervised training with SoftHebb
     running_loss = 0.0
     for i, data in enumerate(unsup_trainloader, 0):
@@ -351,7 +356,7 @@ if __name__ == "__main__":
         correct = 0
         total = 0
         for i, data in enumerate(sup_trainloader, 0):
-            inputs, labels = data
+            inputs, labels = data  # inputs.shape: [16, 3, 32, 32], labels.shape: [16]
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -381,13 +386,13 @@ if __name__ == "__main__":
             running_loss = 0.
             correct = 0
             total = 0
+            representation_activations = []  # List to store representation activations
+
             # since we're not training, we don't need to calculate the gradients for our outputs
-            import pdb; pdb.set_trace()
-            from tqdm import tqdm
             # with tqdm(total=len(testloader), desc=f'Testing Epoch {epoch}') as pbar:
             with torch.no_grad():
-                for data in testloader:
-                    images, labels = data
+                for data in tqdm(testloader):
+                    images, labels = data  # images.shape: [1000, 3, 32, 32], labels.shape: [1000]
                     images = images.to(device)
                     labels = labels.to(device)
                     # calculate outputs by running images through the network
@@ -398,6 +403,17 @@ if __name__ == "__main__":
                     correct += (predicted == labels).sum().item()
                     loss = criterion(outputs, labels)
                     running_loss += loss.item()
+
+                    # Store activations for the selected indices
+                    selected_activations = model.representation[:, selected_indices].cpu().numpy()
+                    representation_activations.append(selected_activations)
+
+
+            # Convert the list of representation activations to a numpy array
+            representation_activations = np.concatenate(representation_activations, axis=0)
+
+            # Now you can save or further analyze the representation_activations as needed
+            np.save(f'./representation_activations_{epoch}.npy', representation_activations)
 
             print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
             print(f'test loss: {running_loss / total:.3f}')
