@@ -145,7 +145,7 @@ class DeepSoftHebb(nn.Module):
         out = self.pool2(self.activ2(self.conv2(self.bn2(out))))  # out -> bn2 -> conv2 -> activ2 -> pool2
         # block 3
         out = self.pool3(self.activ3(self.conv3(self.bn3(out))))  # out -> bn3 -> conv3 -> activ3 -> pool3
-        self.representation = self.flatten()
+        self.representation = self.flatten(out)
         # block 4
         return self.classifier(self.dropout(self.flatten(out)))  # out -> flatten -> classifier
 
