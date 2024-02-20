@@ -384,20 +384,20 @@ if __name__ == "__main__":
             # since we're not training, we don't need to calculate the gradients for our outputs
             import pdb; pdb.set_trace()
             from tqdm import tqdm
-            with tqdm(total=len(testloader), desc=f'Testing Epoch {epoch}') as pbar:
-                with torch.no_grad():
-                    for data in testloader:
-                        images, labels = data
-                        images = images.to(device)
-                        labels = labels.to(device)
-                        # calculate outputs by running images through the network
-                        outputs = model(images)
-                        # the class with the highest energy is what we choose as prediction
-                        _, predicted = torch.max(outputs.data, 1)
-                        total += labels.size(0)
-                        correct += (predicted == labels).sum().item()
-                        loss = criterion(outputs, labels)
-                        running_loss += loss.item()
+            # with tqdm(total=len(testloader), desc=f'Testing Epoch {epoch}') as pbar:
+            with torch.no_grad():
+                for data in testloader:
+                    images, labels = data
+                    images = images.to(device)
+                    labels = labels.to(device)
+                    # calculate outputs by running images through the network
+                    outputs = model(images)
+                    # the class with the highest energy is what we choose as prediction
+                    _, predicted = torch.max(outputs.data, 1)
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
+                    loss = criterion(outputs, labels)
+                    running_loss += loss.item()
 
             print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
             print(f'test loss: {running_loss / total:.3f}')
@@ -405,5 +405,5 @@ if __name__ == "__main__":
 
 # modify the code to make sure that each time a test data is used, the same test data is used and the test data order is the same.
 # record the activation of self.representation of the model when the test data is used.
-# save the activation of self.representation of the model when the test data is used.
+# modify the code to save the activation of self.representation of the model when the test data is used.
 
