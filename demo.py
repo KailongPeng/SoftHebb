@@ -320,7 +320,7 @@ if __name__ == "__main__":
 
     np.random.seed(42)
     # Randomly select 1000 indices from the total of 24576 units
-    selected_indices = np.random.choice(24576, size=1000, replace=False)
+    selected_indices = np.random.choice(24576, size=999, replace=False)
 
     # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
@@ -350,12 +350,10 @@ if __name__ == "__main__":
                 # test_labels = test_labels.to(device)
                 # calculate outputs by running images through the network
                 test_outputs = model(test_images)
-                import pdb ; pdb.set_trace()
                 selected_activations = model.representation[:, selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
                 representations.append(selected_activations)
 
             # Convert the list of representation activations to a numpy array
-            import pdb; pdb.set_trace()
             representations = np.concatenate(representations, axis=0)
 
             # Now you can save or further analyze the representation_activations as needed
