@@ -328,9 +328,8 @@ if __name__ == "__main__":
     # Unsupervised training with SoftHebb
     running_loss = 0.0
     representations = []
-    import pdb ; pdb.set_trace()
-    for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):
-        inputs, _ = data
+    for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):  # unsup_trainloader.shape: [5000, 3, 32, 32]
+        inputs, _ = data  # inputs.shape: [10, 3, 32, 32]
         inputs = inputs.to(device)
 
         # zero the parameter gradients
@@ -351,7 +350,7 @@ if __name__ == "__main__":
                 # test_labels = test_labels.to(device)
                 # calculate outputs by running images through the network
                 test_outputs = model(test_images)
-
+                import pdb ; pdb.set_trace()
                 selected_activations = model.representation[:, selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
                 representations.append(selected_activations)
 
