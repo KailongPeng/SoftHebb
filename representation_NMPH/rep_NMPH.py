@@ -17,8 +17,10 @@ import matplotlib.pyplot as plt
 matrices = []
 for i in range(6):
     if i == 5:
+        # matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_activations_{49}.npy"
         matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/representation_activations_{49}.npy"
     else:
+        # matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_activations_{i * 10}.npy"
         matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/representation_activations_{i * 10}.npy"
     matrix = np.load(matrix_path)
     matrices.append(matrix)
@@ -54,3 +56,19 @@ def create_scatter_plot(matrix1, matrix2):
 i = 1
 create_scatter_plot(correlation_matrices[i], correlation_matrices[i + 1])
 differences = calculate_difference(correlation_matrices[i], correlation_matrices[i + 1])
+
+
+
+
+
+def trash():
+    # Store activations for the selected indices
+    selected_activations = model.representation[:,
+                           selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
+    representation_activations.append(selected_activations)
+
+    # Convert the list of representation activations to a numpy array
+    representation_activations = np.concatenate(representation_activations, axis=0)
+
+    # Now you can save or further analyze the representation_activations as needed
+    np.save(f'./result/representation_activations_{epoch}.npy', representation_activations)

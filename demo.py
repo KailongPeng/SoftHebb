@@ -14,7 +14,9 @@ from torch.optim.lr_scheduler import StepLR
 import torchvision
 from tqdm import tqdm
 import os
+
 os.chdir('/gpfs/milgram/project/turk-browne/projects/SoftHebb')
+
 
 class SoftHebbConv2d(nn.Module):
     # SoftHebbConv2d是一个自定义的卷积层，使用SoftHebb算法进行权重更新。
@@ -114,19 +116,19 @@ class DeepSoftHebb(nn.Module):
         super(DeepSoftHebb, self).__init__()
         # block 1
         self.bn1 = nn.BatchNorm2d(3, affine=False)
-        self.conv1 = SoftHebbConv2d(in_channels=3, out_channels=96, kernel_size=5, padding=2, t_invert=1,)
+        self.conv1 = SoftHebbConv2d(in_channels=3, out_channels=96, kernel_size=5, padding=2, t_invert=1, )
         self.activ1 = Triangle(power=0.7)
         self.pool1 = nn.MaxPool2d(kernel_size=4, stride=2, padding=1)
 
         # block 2
         self.bn2 = nn.BatchNorm2d(96, affine=False)
-        self.conv2 = SoftHebbConv2d(in_channels=96, out_channels=384, kernel_size=3, padding=1, t_invert=0.65,)
+        self.conv2 = SoftHebbConv2d(in_channels=96, out_channels=384, kernel_size=3, padding=1, t_invert=0.65, )
         self.activ2 = Triangle(power=1.4)
         self.pool2 = nn.MaxPool2d(kernel_size=4, stride=2, padding=1)
 
         # block 3
         self.bn3 = nn.BatchNorm2d(384, affine=False)
-        self.conv3 = SoftHebbConv2d(in_channels=384, out_channels=1536, kernel_size=3, padding=1, t_invert=0.25,)
+        self.conv3 = SoftHebbConv2d(in_channels=384, out_channels=1536, kernel_size=3, padding=1, t_invert=0.25, )
         self.activ3 = Triangle(power=1.)
         self.pool3 = nn.AvgPool2d(kernel_size=2, stride=2, padding=0)
 
@@ -306,23 +308,28 @@ if __name__ == "__main__":
     sup_lr_scheduler = CustomStepLR(sup_optimizer, nb_epochs=50)
     criterion = nn.CrossEntropyLoss()
 
-    trainset = FastCIFAR10('./data', train=True, download=True)  # Dataset FastCIFAR10 Number of datapoints: 50000 Root location: ./data Split: Train
+    trainset = FastCIFAR10('./data', train=True,
+                           download=True)  # Dataset FastCIFAR10 Number of datapoints: 50000 Root location: ./data Split: Train
     unsup_trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True, )
     sup_trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, )
 
-    testset = FastCIFAR10('./data', train=False)  # Dataset FastCIFAR10 Number of datapoints: 10000 Root location: ./data Split: Test
+    testset = FastCIFAR10('./data',
+                          train=False)  # Dataset FastCIFAR10 Number of datapoints: 10000 Root location: ./data Split: Test
     # Use a fixed seed for the random number generator
     torch.manual_seed(42)
 
     np.random.seed(42)
     # Randomly select 1000 indices from the total of 24576 units
-    selected_indices = np.random.choice(24576, size=10000, replace=False)
+    selected_indices = np.random.choice(24576, size=1000, replace=False)
 
     # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
+
     # Unsupervised training with SoftHebb
     running_loss = 0.0
-    for i, data in enumerate(unsup_trainloader, 0):
+    representations = []
+    import pdb ; pdb.set_trace()
+    for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):
         inputs, _ = data
         inputs = inputs.to(device)
 
@@ -336,6 +343,23 @@ if __name__ == "__main__":
         # optimize
         unsup_optimizer.step()
         unsup_lr_scheduler.step()
+
+        with torch.no_grad():
+            for test_data in tqdm(testloader):
+                test_images, test_labels = test_data  # images.shape: [1000, 3, 32, 32], labels.shape: [1000]
+                test_images = test_images.to(device)
+                # test_labels = test_labels.to(device)
+                # calculate outputs by running images through the network
+                test_outputs = model(test_images)
+
+                selected_activations = model.representation[:, selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
+                representations.append(selected_activations)
+
+            # Convert the list of representation activations to a numpy array
+            representations = np.concatenate(representations, axis=0)
+
+            # Now you can save or further analyze the representation_activations as needed
+            np.save(f'./result/representation_{unsup_trainloader_i}.npy', representations)
 
     # Supervised training of classifier
     # set requires grad false and eval mode for all modules but classifier
@@ -386,7 +410,6 @@ if __name__ == "__main__":
             running_loss = 0.
             correct = 0
             total = 0
-            representation_activations = []  # List to store representation activations
 
             # since we're not training, we don't need to calculate the gradients for our outputs
             # with tqdm(total=len(testloader), desc=f'Testing Epoch {epoch}') as pbar:
@@ -403,20 +426,8 @@ if __name__ == "__main__":
                     correct += (predicted == labels).sum().item()
                     loss = criterion(outputs, labels)
                     running_loss += loss.item()
-
-                    # Store activations for the selected indices
-                    selected_activations = model.representation[:, selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
-                    representation_activations.append(selected_activations)
-
-            # Convert the list of representation activations to a numpy array
-            representation_activations = np.concatenate(representation_activations, axis=0)
-
-            # Now you can save or further analyze the representation_activations as needed
-            np.save(f'./result/representation_activations_{epoch}.npy', representation_activations)
-
             print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
             print(f'test loss: {running_loss / total:.3f}')
 
-# modify the code to make sure that each time a test data is used, the same test data is used and the test data order is the same.
+# modify the Unsupervised training so that each time the weight is updated, feed in test data and save the activation of self.representation of the model. make sure that the same test data is used and the test data order is the same.
 # modify the code to save the activation of self.representation of the model when the test data is used.
-
