@@ -327,7 +327,7 @@ if __name__ == "__main__":
 
     # Unsupervised training with SoftHebb
     running_loss = 0.0
-    for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):  # unsup_trainloader.shape: [5000, 3, 32, 32]
+    for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):  # unsup_trainloader.len: 5000
         inputs, _ = data  # inputs.shape: [10, 3, 32, 32]
         inputs = inputs.to(device)
 
@@ -357,7 +357,8 @@ if __name__ == "__main__":
             representations = np.concatenate(representations, axis=0)
 
             # Now you can save or further analyze the representation_activations as needed
-            np.save(f'./result/representation_{unsup_trainloader_i}.npy', representations)
+            np.save(f'/gpfs/milgram/scratch60/turk-browne/kp578/softHebb/result/'
+                    f'representation_{unsup_trainloader_i}.npy', representations)
 
     # Supervised training of classifier
     # set requires grad false and eval mode for all modules but classifier

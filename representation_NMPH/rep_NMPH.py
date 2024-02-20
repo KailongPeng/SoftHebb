@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 matrices = []
 available_time_points = 600
 for ii in range(0, available_time_points, 10):
-    matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_{ii}.npy"
+    matrix_path = (f"/gpfs/milgram/scratch60/turk-browne/kp578/softHebb/result"
+                   f"/representation_{ii}.npy")
     matrix = np.load(matrix_path)
     matrices.append(matrix)
 
