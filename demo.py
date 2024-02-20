@@ -298,7 +298,6 @@ if __name__ == "__main__":
         {"params": model.conv2.parameters(), "lr": -0.005, },
         {"params": model.conv3.parameters(), "lr": -0.01, },
     ], lr=0)
-    import pdb ; pdb.set_trace()
     unsup_lr_scheduler = WeightNormDependentLR(unsup_optimizer, power_lr=0.5)
 
     # 监督的优化器和学习率调度器
@@ -306,16 +305,16 @@ if __name__ == "__main__":
     sup_lr_scheduler = CustomStepLR(sup_optimizer, nb_epochs=50)
     criterion = nn.CrossEntropyLoss()
 
-    trainset = FastCIFAR10('./data', train=True, download=True)
+    trainset = FastCIFAR10('./data', train=True, download=True)  # Dataset FastCIFAR10 Number of datapoints: 50000 Root location: ./data Split: Train
     unsup_trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True, )
     sup_trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, )
 
-    testset = FastCIFAR10('./data', train=False)
+    testset = FastCIFAR10('./data', train=False)  # Dataset FastCIFAR10 Number of datapoints: 10000 Root location: ./data Split: Test
     # Use a fixed seed for the random number generator
     torch.manual_seed(42)
     # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
-
+    import pdb; pdb.set_trace()
     # Unsupervised training with SoftHebb
     running_loss = 0.0
     for i, data in enumerate(unsup_trainloader, 0):
@@ -383,19 +382,22 @@ if __name__ == "__main__":
             correct = 0
             total = 0
             # since we're not training, we don't need to calculate the gradients for our outputs
-            with torch.no_grad():
-                for data in testloader:
-                    images, labels = data
-                    images = images.to(device)
-                    labels = labels.to(device)
-                    # calculate outputs by running images through the network
-                    outputs = model(images)
-                    # the class with the highest energy is what we choose as prediction
-                    _, predicted = torch.max(outputs.data, 1)
-                    total += labels.size(0)
-                    correct += (predicted == labels).sum().item()
-                    loss = criterion(outputs, labels)
-                    running_loss += loss.item()
+            import pdb; pdb.set_trace()
+            from tqdm import tqdm
+            with tqdm(total=len(testloader), desc=f'Testing Epoch {epoch}') as pbar:
+                with torch.no_grad():
+                    for data in testloader:
+                        images, labels = data
+                        images = images.to(device)
+                        labels = labels.to(device)
+                        # calculate outputs by running images through the network
+                        outputs = model(images)
+                        # the class with the highest energy is what we choose as prediction
+                        _, predicted = torch.max(outputs.data, 1)
+                        total += labels.size(0)
+                        correct += (predicted == labels).sum().item()
+                        loss = criterion(outputs, labels)
+                        running_loss += loss.item()
 
             print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
             print(f'test loss: {running_loss / total:.3f}')
