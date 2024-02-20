@@ -12,6 +12,8 @@ from torch.nn.modules.utils import _pair
 from torch.optim.lr_scheduler import StepLR
 import torchvision
 
+import os
+os.chdir('/gpfs/milgram/project/turk-browne/projects/SoftHebb')
 
 class SoftHebbConv2d(nn.Module):
     # SoftHebbConv2d是一个自定义的卷积层，使用SoftHebb算法进行权重更新。
@@ -296,6 +298,7 @@ if __name__ == "__main__":
         {"params": model.conv2.parameters(), "lr": -0.005, },
         {"params": model.conv3.parameters(), "lr": -0.01, },
     ], lr=0)
+    import pdb ; pdb.set_trace()
     unsup_lr_scheduler = WeightNormDependentLR(unsup_optimizer, power_lr=0.5)
 
     # 监督的优化器和学习率调度器
@@ -308,6 +311,9 @@ if __name__ == "__main__":
     sup_trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, )
 
     testset = FastCIFAR10('./data', train=False)
+    # Use a fixed seed for the random number generator
+    torch.manual_seed(42)
+    # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
 
     # Unsupervised training with SoftHebb
