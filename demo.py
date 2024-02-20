@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
     np.random.seed(42)
     # Randomly select 1000 indices from the total of 24576 units
-    selected_indices = np.random.choice(24576, size=1000, replace=False)
+    selected_indices = np.random.choice(24576, size=10000, replace=False)
 
     # Ensure the same test data is used each time and the order is the same
     testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
@@ -405,21 +405,18 @@ if __name__ == "__main__":
                     running_loss += loss.item()
 
                     # Store activations for the selected indices
-                    selected_activations = model.representation[:, selected_indices].cpu().numpy()
+                    selected_activations = model.representation[:, selected_indices].cpu().numpy()  # model.representation.shape: [1000, 24576]
                     representation_activations.append(selected_activations)
-
 
             # Convert the list of representation activations to a numpy array
             representation_activations = np.concatenate(representation_activations, axis=0)
 
             # Now you can save or further analyze the representation_activations as needed
-            np.save(f'./representation_activations_{epoch}.npy', representation_activations)
+            np.save(f'./result/representation_activations_{epoch}.npy', representation_activations)
 
             print(f'Accuracy of the network on the 10000 test images: {100 * correct / total} %')
             print(f'test loss: {running_loss / total:.3f}')
 
-
 # modify the code to make sure that each time a test data is used, the same test data is used and the test data order is the same.
-# record the activation of self.representation of the model when the test data is used.
 # modify the code to save the activation of self.representation of the model when the test data is used.
 
