@@ -327,7 +327,6 @@ if __name__ == "__main__":
 
     # Unsupervised training with SoftHebb
     running_loss = 0.0
-    representations = []
     for unsup_trainloader_i, data in enumerate(unsup_trainloader, 0):  # unsup_trainloader.shape: [5000, 3, 32, 32]
         inputs, _ = data  # inputs.shape: [10, 3, 32, 32]
         inputs = inputs.to(device)
@@ -344,6 +343,7 @@ if __name__ == "__main__":
         unsup_lr_scheduler.step()
 
         with torch.no_grad():
+            representations = []
             for test_data in tqdm(testloader):
                 test_images, test_labels = test_data  # images.shape: [1000, 3, 32, 32], labels.shape: [1000]
                 test_images = test_images.to(device)
@@ -355,6 +355,7 @@ if __name__ == "__main__":
                 representations.append(selected_activations)
 
             # Convert the list of representation activations to a numpy array
+            import pdb; pdb.set_trace()
             representations = np.concatenate(representations, axis=0)
 
             # Now you can save or further analyze the representation_activations as needed
