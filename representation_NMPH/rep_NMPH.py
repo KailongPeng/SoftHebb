@@ -15,13 +15,9 @@ import matplotlib.pyplot as plt
 
 # Load matrices
 matrices = []
-for i in range(6):
-    if i == 5:
-        # matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_activations_{49}.npy"
-        matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/representation_activations_{49}.npy"
-    else:
-        # matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_activations_{i * 10}.npy"
-        matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/representation_activations_{i * 10}.npy"
+available_time_points = 600
+for ii in range(0, available_time_points, 10):
+    matrix_path = f"/gpfs/milgram/project/turk-browne/projects/SoftHebb/result/representation_{ii}.npy"
     matrix = np.load(matrix_path)
     matrices.append(matrix)
 
@@ -40,25 +36,26 @@ def calculate_difference(matrix1, matrix2):
 
 
 # Create a scatter plot based on x and y axis
-def create_scatter_plot(matrix1, matrix2):
-    differences = calculate_difference(matrix1, matrix2)
+def create_scatter_plot(matrix1, matrix2, title=None):
+    # Take the upper triangle of the matrices
+    upper_triangle_indices = np.triu_indices(matrix1.shape[0], k=1)
+
+    differences = calculate_difference(matrix2, matrix1)
 
     plt.figure(figsize=(10, 8))
-    plt.scatter(matrix1.flatten(), differences.flatten(), alpha=0.5)
-    plt.title('Scatter Plot of Matrix Values vs. Differences')
+    plt.scatter(matrix1[upper_triangle_indices].flatten(),
+                differences[upper_triangle_indices].flatten(),
+                alpha=0.5, s=1)
+    plt.title(title)
     plt.xlabel('Matrix 1 Values')
     plt.ylabel('Matrix Differences')
     plt.show()
 
 
 # Create scatter plots for each time point
-# for i in range(5):
-i = 1
-create_scatter_plot(correlation_matrices[i], correlation_matrices[i + 1])
-differences = calculate_difference(correlation_matrices[i], correlation_matrices[i + 1])
-
-
-
+for i in range(len(correlation_matrices) - 1):
+    create_scatter_plot(correlation_matrices[i], correlation_matrices[i + 1],
+                        title=f'Time Point {i} vs. Time Point {i + 1}')
 
 
 def trash():
